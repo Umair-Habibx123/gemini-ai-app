@@ -9,13 +9,17 @@
 
 **[⬇️ Download the latest APK](https://github.com/Umair-Habibx123/gemini-ai-app/releases/latest)** · Android 7.0+ · enable "Install unknown apps" for your browser or file manager first.
 
+| Chat | Image question | Attach | Models | History |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/text-to-text.jpg" width="160" alt="A text chat with a streamed Markdown reply"> | <img src="docs/screenshots/image-to-text.jpg" width="160" alt="Asking Gemini to explain an attached pencil sketch"> | <img src="docs/screenshots/attach-options.jpg" width="160" alt="Attach menu: photo, video, audio, PDF or any file"> | <img src="docs/screenshots/models.jpg" width="160" alt="Model picker listing the Gemini fallback chain"> | <img src="docs/screenshots/chat-history.jpg" width="160" alt="Side drawer with New Chat and saved conversations"> |
+
 ## Features
 
 - **Chat with Gemini:** replies stream in word by word and render as Markdown (code blocks, lists, tables)
 - **Attachments:**
   - Images: from the gallery
   - Voice notes: recorded in the app, with playback
-  - Files: video, audio, PDF, and text files (`.md`, `.csv`, `.json`)
+  - Files: video, audio, PDF, or any other document
 - **Model picker with automatic fallback:** choose a Gemini model; if it's overloaded or unavailable, the app tries the next one in the list
 - **Chat history:** conversations and messages saved on the phone (SQLite); start, reopen or delete chats
 - **Message actions:** copy, share, and full-screen image preview with zoom
