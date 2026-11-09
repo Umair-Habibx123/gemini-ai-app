@@ -1,30 +1,66 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:gemini_ai/main.dart';
+import 'package:gemini_ai/main.dart' show parseModelList;
+import 'package:gemini_ai/providers/theme_provider.dart';
+import 'package:gemini_ai/screens/no_internet_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('parseModelList', () {
+    test('splits, trims and keeps priority order', () {
+      expect(parseModelList(' gemini-2.5-flash , gemini-2.0-flash,gemini-2.0-flash-lite '),
+          ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']);
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('drops empty entries and duplicates', () {
+      expect(parseModelList('a,,b, ,a'), ['a', 'b']);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('falls back to a default when missing or empty', () {
+      expect(parseModelList(null), ['gemini-2.0-flash']);
+      expect(parseModelList('  ,  '), ['gemini-2.0-flash']);
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('ThemeProvider', () {
+    test('defaults to dark, and restores a saved choice', () async {
+      SharedPreferences.setMockInitialValues({});
+      final fresh = ThemeProvider();
+      await Future<void>.delayed(Duration.zero);
+      expect(fresh.mode, ThemeMode.dark);
+
+      SharedPreferences.setMockInitialValues({'theme_mode': 'light'});
+      final saved = ThemeProvider();
+      await Future<void>.delayed(Duration.zero);
+      expect(saved.mode, ThemeMode.light);
+    });
+
+    test('toggle switches mode and saves it', () async {
+      SharedPreferences.setMockInitialValues({});
+      final provider = ThemeProvider();
+      await Future<void>.delayed(Duration.zero);
+      await provider.toggle();
+      expect(provider.mode, ThemeMode.light);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('theme_mode'), 'light');
+    });
+  });
+
+  testWidgets('offline screen: Try Again calls back, disabled while checking', (tester) async {
+    var retries = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: NoInternetScreen(onRetry: () => retries++, isChecking: false),
+    ));
+    expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+    await tester.tap(find.text('Try Again'));
+    expect(retries, 1);
+
+    await tester.pumpWidget(MaterialApp(
+      home: NoInternetScreen(onRetry: () => retries++, isChecking: true),
+    ));
+    expect(find.text('Checking…'), findsOneWidget);
+    await tester.tap(find.text('Checking…'));
+    expect(retries, 1, reason: 'taps are ignored while a check is running');
   });
 }

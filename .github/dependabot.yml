@@ -1,0 +1,11 @@
+# Opens a pull request when a pinned action or a Dart/Gradle dependency has a new release.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: monthly

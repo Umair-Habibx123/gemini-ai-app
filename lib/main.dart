@@ -12,19 +12,25 @@ String? apiKey;
 String? geminiModel; // currently active model (for display)
 List<String> geminiModels = []; // full fallback chain
 
+/// Turns the comma-separated GEMINI_MODELS value from .env into the model
+/// fallback chain, highest priority first. Falls back to a default model.
+List<String> parseModelList(String? raw, {String fallback = 'gemini-2.0-flash'}) {
+  final models = (raw ?? '')
+      .split(',')
+      .map((m) => m.trim())
+      .where((m) => m.isNotEmpty)
+      .toSet() // drop duplicates, keep first-seen order
+      .toList();
+  return models.isEmpty ? [fallback] : models;
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
   apiKey = dotenv.env['API_KEY'];
 
-  final modelsRaw = dotenv.env['GEMINI_MODELS'] ?? 'gemini-2.0-flash';
-  geminiModels =
-      modelsRaw
-          .split(',')
-          .map((m) => m.trim())
-          .where((m) => m.isNotEmpty)
-          .toList();
+  geminiModels = parseModelList(dotenv.env['GEMINI_MODELS']);
   geminiModel = geminiModels.first; // default display model
 
   assert(apiKey != null && apiKey!.isNotEmpty, 'API_KEY is missing from .env');
